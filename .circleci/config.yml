@@ -32,12 +32,19 @@ jobs:
           command: |
             cd udagram/udagram-api
             npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - udagram/udagram-frontend/www
+            - udagram/udagram-api/www
 
   deploy:
     docker:
       - image: cimg/python:3.10
     steps:
       - checkout
+      - attach_workspace:
+          at: .
       - run:
           name: Install AWS EB CLI and AWS CLI
           command: |
