@@ -44,40 +44,45 @@ jobs:
             npm run build
 
   deploy:
-    docker:
-      - image: cimg/python:3.10
-    steps:
-      - checkout
-      - run:
-          name: Install AWS EB CLI
-          command: |
-            pip install awsebcli
-      - run:
-          name: Set environment variables in Elastic Beanstalk
-          command: |
-            cd udagram/udagram-api
-            eb setenv \
-              AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-              AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-              AWS_REGION=$AWS_REGION \
-              AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
-              AWS_BUCKET=$AWS_BUCKET \
-              POSTGRES_HOST=$POSTGRES_HOST \
-              POSTGRES_DB=$POSTGRES_DB \
-              POSTGRES_USER=$POSTGRES_USER \
-              POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-              JWT_SECRET=$JWT_SECRET
-      - run:
-          name: Deploy API to Elastic Beanstalk
-          command: |
-            cd udagram/udagram-api
-            eb deploy udagram-api-env
-      - run:
-          name: Deploy Frontend to S3
-          command: |
-            cd udagram/udagram-frontend
-            npm install -g aws-cli
-            aws s3 sync www s3://udagram-frontend-radu --delete
+  docker:
+    - image: cimg/python:3.10
+  steps:
+    - checkout
+    - run:
+        name: Install AWS EB CLI
+        command: |
+          pip install awsebcli
+    - run:
+        name: Initialize Elastic Beanstalk
+        command: |
+          cd udagram/udagram-api
+          eb init udagram-api --region $AWS_REGION --platform node.js
+    - run:
+        name: Set environment variables in Elastic Beanstalk
+        command: |
+          cd udagram/udagram-api
+          eb setenv \
+            AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+            AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+            AWS_REGION=$AWS_REGION \
+            AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
+            AWS_BUCKET=$AWS_BUCKET \
+            POSTGRES_HOST=$POSTGRES_HOST \
+            POSTGRES_DB=$POSTGRES_DB \
+            POSTGRES_USER=$POSTGRES_USER \
+            POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+            JWT_SECRET=$JWT_SECRET
+    - run:
+        name: Deploy API to Elastic Beanstalk
+        command: |
+          cd udagram/udagram-api
+          eb deploy udagram-api-env
+    - run:
+        name: Deploy Frontend to S3
+        command: |
+          cd udagram/udagram-frontend
+          npm install -g aws-cli
+          aws s3 sync www s3://udagram-frontend-radu --delete
 
 workflows:
   udagram:
