@@ -58,7 +58,7 @@ jobs:
       - run:
           name: Initialize Elastic Beanstalk
           command: |
-            cd udagram/udagram-api/www
+            cd udagram/udagram-api
             eb init udagram-api --region $AWS_REGION --platform node.js
       - run:
           name: Set environment variables in Elastic Beanstalk
