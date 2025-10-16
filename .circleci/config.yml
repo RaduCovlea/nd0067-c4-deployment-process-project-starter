@@ -7,32 +7,37 @@ orbs:
 jobs:
   build:
     docker:
-      - image: cimg/node:18.20
+      - image: cimg/node:14.15
     steps:
       - checkout
       - node/install:
-          node-version: '18.20'
+          node-version: '14.15'
+
       - run:
           name: Install dependencies for frontend
           command: |
             cd udagram/udagram-frontend
             npm install
             npm install typescript@3.5.3 --save-dev
+
       - run:
           name: Install dependencies for backend
           command: |
             cd udagram/udagram-api
             npm install
+
       - run:
           name: Build frontend
           command: |
             cd udagram/udagram-frontend
             ./node_modules/.bin/ng build --prod
+
       - run:
           name: Build backend
           command: |
             cd udagram/udagram-api
             npm run build
+
       - persist_to_workspace:
           root: .
           paths:
@@ -54,7 +59,7 @@ jobs:
           name: Initialize Elastic Beanstalk
           command: |
             cd udagram/udagram-api
-            eb init udagram-api --region $AWS_REGION --platform "Node.js 18 running on 64bit Amazon Linux 2"
+            eb init udagram-api --region $AWS_REGION --platform node.js
       - run:
           name: Set environment variables in Elastic Beanstalk
           command: |
