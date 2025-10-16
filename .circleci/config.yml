@@ -16,31 +16,31 @@ jobs:
       - run:
           name: Install Front-End Dependencies
           command: |
-            cd udagram-frontend
+            cd udagram/udagram-frontend
             npm install --legacy-peer-deps
 
       - run:
           name: Install API Dependencies
           command: |
-            cd udagram-api
+            cd udagram/udagram-api
             npm install
 
       - run:
           name: Lint Frontend
           command: |
-            cd udagram-frontend
+            cd udagram/udagram-frontend
             npm run lint || echo "Lint warnings ignored for build"
 
       - run:
           name: Build Front-End
           command: |
-            cd udagram-frontend
+            cd udagram/udagram-frontend
             npm run build
 
       - run:
           name: Build Backend
           command: |
-            cd udagram-api
+            cd udagram/udagram-api
             npm run build
 
   deploy:
@@ -55,7 +55,7 @@ jobs:
       - run:
           name: Set environment variables in Elastic Beanstalk
           command: |
-            cd udagram-api
+            cd udagram/udagram-api
             eb setenv \
               AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
               AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
@@ -70,12 +70,12 @@ jobs:
       - run:
           name: Deploy API to Elastic Beanstalk
           command: |
-            cd udagram-api
+            cd udagram/udagram-api
             eb deploy udagram-api-env
       - run:
           name: Deploy Frontend to S3
           command: |
-            cd udagram-frontend
+            cd udagram/udagram-frontend
             npm install -g aws-cli
             aws s3 sync www s3://udagram-frontend-radu --delete
 
