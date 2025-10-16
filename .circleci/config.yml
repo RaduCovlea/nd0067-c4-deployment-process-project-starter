@@ -43,7 +43,7 @@ jobs:
             cd udagram/udagram-api
             npm run build
 
-  deploy:
+deploy:
   docker:
     - image: cimg/python:3.10
   steps:
