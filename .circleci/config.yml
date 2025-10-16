@@ -12,26 +12,32 @@ jobs:
       - checkout
       - node/install:
           node-version: '14.15'
+
       - run:
           name: Install dependencies for frontend
           command: |
             cd udagram/udagram-frontend
             npm install
+            npm install typescript@3.5.3 --save-dev
+
       - run:
           name: Install dependencies for backend
           command: |
             cd udagram/udagram-api
             npm install
+
       - run:
           name: Build frontend
           command: |
             cd udagram/udagram-frontend
-            npm run build
+            ./node_modules/.bin/ng build --prod
+
       - run:
           name: Build backend
           command: |
             cd udagram/udagram-api
             npm run build
+
       - persist_to_workspace:
           root: .
           paths:
