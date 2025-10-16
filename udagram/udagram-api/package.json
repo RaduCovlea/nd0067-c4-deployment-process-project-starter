@@ -7,8 +7,8 @@
   },
   "main": "server.ts",
   "scripts": {
-    "clean": "rimraf www",
-    "build": "npm install . && npm run clean && tsc && mkdir -p www/config && cp -rf src/config www/config && cp package.json www/package.json && cd www && zip -r Archive.zip . && cd ..",
+    "clean": "node -e \"require('fs').rmSync('www', { recursive: true, force: true });\"",
+    "build": "npm install . && npm run clean && tsc && node -e \"require('fs').mkdirSync('www/config', { recursive: true });\" && copy src\\config\\* www\\config\\ || cp -rf src/config www/config && copy package.json www\\ || cp package.json www/ && cd www && powershell -Command \"Compress-Archive * Archive.zip\" || zip -r Archive.zip . && cd ..",
     "start": "node ./www/server.js",
     "dev": "npx ts-node-dev --respawn --transpile-only ./src/server.ts",
     "prod": "npm run build && node ./www/server.js",
