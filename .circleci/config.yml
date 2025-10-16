@@ -1,3 +1,44 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.0.2
+  aws-cli: circleci/aws-cli@3.1.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:18.20
+    steps:
+      - checkout
+      - node/install:
+          node-version: '18.20'
+      - run:
+          name: Install dependencies for frontend
+          command: |
+            cd udagram/udagram-frontend
+            npm install
+            npm install typescript@3.5.3 --save-dev
+      - run:
+          name: Install dependencies for backend
+          command: |
+            cd udagram/udagram-api
+            npm install
+      - run:
+          name: Build frontend
+          command: |
+            cd udagram/udagram-frontend
+            ./node_modules/.bin/ng build --prod
+      - run:
+          name: Build backend
+          command: |
+            cd udagram/udagram-api
+            npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - udagram/udagram-frontend/www
+            - udagram/udagram-api/www
+
   deploy:
     docker:
       - image: cimg/python:3.10
@@ -13,7 +54,7 @@
           name: Initialize Elastic Beanstalk
           command: |
             cd udagram/udagram-api
-            eb init udagram-api --region $AWS_REGION --platform "Node.js 20 running on 64bit Amazon Linux 2023"
+            eb init udagram-api --region $AWS_REGION --platform "Node.js 18 running on 64bit Amazon Linux 2"
       - run:
           name: Set environment variables in Elastic Beanstalk
           command: |
@@ -39,3 +80,15 @@
           command: |
             cd udagram/udagram-frontend
             aws s3 sync www s3://udagram-frontend-radu --delete
+
+workflows:
+  udagram:
+    jobs:
+      - build
+      - hold:
+          type: approval
+          requires:
+            - build
+      - deploy:
+          requires:
+            - hold
