@@ -1,88 +1,77 @@
 version: 2.1
+
 orbs:
   node: circleci/node@5.0.2
-  eb: circleci/aws-elastic-beanstalk@2.0.1
   aws-cli: circleci/aws-cli@3.1.1
 
 jobs:
   build:
     docker:
-      - image: "cimg/node:14.15"
+      - image: cimg/node:14.15
     steps:
       - checkout
       - node/install:
           node-version: '14.15'
-
       - run:
-          name: Install Front-End Dependencies
+          name: Install dependencies for frontend
           command: |
             cd udagram/udagram-frontend
-            npm install --legacy-peer-deps
-
+            npm install
       - run:
-          name: Install API Dependencies
+          name: Install dependencies for backend
           command: |
             cd udagram/udagram-api
             npm install
-
       - run:
-          name: Lint Frontend
-          command: |
-            cd udagram/udagram-frontend
-            npm run lint || echo "Lint warnings ignored for build"
-
-      - run:
-          name: Build Front-End
+          name: Build frontend
           command: |
             cd udagram/udagram-frontend
             npm run build
-
       - run:
-          name: Build Backend
+          name: Build backend
           command: |
             cd udagram/udagram-api
             npm run build
 
-deploy:
-  docker:
-    - image: cimg/python:3.10
-  steps:
-    - checkout
-    - run:
-        name: Install AWS EB CLI
-        command: |
-          pip install awsebcli
-    - run:
-        name: Initialize Elastic Beanstalk
-        command: |
-          cd udagram/udagram-api
-          eb init udagram-api --region $AWS_REGION --platform node.js
-    - run:
-        name: Set environment variables in Elastic Beanstalk
-        command: |
-          cd udagram/udagram-api
-          eb setenv \
-            AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-            AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-            AWS_REGION=$AWS_REGION \
-            AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
-            AWS_BUCKET=$AWS_BUCKET \
-            POSTGRES_HOST=$POSTGRES_HOST \
-            POSTGRES_DB=$POSTGRES_DB \
-            POSTGRES_USER=$POSTGRES_USER \
-            POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-            JWT_SECRET=$JWT_SECRET
-    - run:
-        name: Deploy API to Elastic Beanstalk
-        command: |
-          cd udagram/udagram-api
-          eb deploy udagram-api-env
-    - run:
-        name: Deploy Frontend to S3
-        command: |
-          cd udagram/udagram-frontend
-          npm install -g aws-cli
-          aws s3 sync www s3://udagram-frontend-radu --delete
+  deploy:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - run:
+          name: Install AWS EB CLI
+          command: |
+            pip install awsebcli
+      - run:
+          name: Initialize Elastic Beanstalk
+          command: |
+            cd udagram/udagram-api
+            eb init udagram-api --region $AWS_REGION --platform node.js
+      - run:
+          name: Set environment variables in EB
+          command: |
+            cd udagram/udagram-api
+            eb setenv \
+              AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+              AWS_REGION=$AWS_REGION \
+              AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
+              AWS_BUCKET=$AWS_BUCKET \
+              POSTGRES_HOST=$POSTGRES_HOST \
+              POSTGRES_DB=$POSTGRES_DB \
+              POSTGRES_USER=$POSTGRES_USER \
+              POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+              JWT_SECRET=$JWT_SECRET
+      - run:
+          name: Deploy API to Elastic Beanstalk
+          command: |
+            cd udagram/udagram-api
+            eb deploy udagram-api-env
+      - run:
+          name: Deploy Frontend to S3
+          command: |
+            cd udagram/udagram-frontend
+            aws s3 sync www s3://udagram-frontend-radu --delete
 
 workflows:
   udagram:
@@ -92,10 +81,6 @@ workflows:
           type: approval
           requires:
             - build
-          filters:
-            branches:
-              only:
-                - master
       - deploy:
           requires:
             - hold
